@@ -1,19 +1,12 @@
-/* ============================================================
-   Civilization Labs — Mobile Responsive Overrides
-   Supplements the existing site.css breakpoints at 800px/1100px.
-   Link this AFTER site.css.
-   ============================================================ */
+/* mobile.css — responsive overrides for site.css
+   link after site.css */
 
-/* ── Tablet: tighten things the base CSS doesn't handle ── */
 @media (max-width: 1100px) {
-  /* Patterns head is pinned to 58vw in base — free it up */
   .patterns-head {
     width: 100%;
     margin-left: 0;
   }
 
-  /* Case panel drops to 1 col but base CSS sets grid-template-columns:1fr
-     which collapses the two columns — also sort out the case-boxes */
   .case-boxes {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -23,7 +16,6 @@
     grid-column: 1 / -1;
   }
 
-  /* Bento sidebar: stack nicely in 1-col layout */
   .bento-sidebar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -31,10 +23,7 @@
   }
 }
 
-/* ── Mobile: 800px and below ── */
 @media (max-width: 800px) {
-
-  /* ─ NAV ─ */
   .nav-inner {
     padding: 0 1rem;
     gap: 8px;
@@ -45,7 +34,6 @@
     padding: 9px 16px;
   }
 
-  /* ─ HERO ─ */
   .hero {
     padding-top: 80px;
     padding-left: 1.25rem;
@@ -61,7 +49,6 @@
     font-size: 12px;
   }
 
-  /* Chip sits inline — stop it overflowing narrow lines */
   .inline-chip {
     font-size: 0.65rem;
     padding: 3px 8px;
@@ -82,9 +69,6 @@
     gap: 10px;
   }
 
-  /* ─ PROBLEM ─ */
-  /* Base already sets problem-grid to 1 col at 1100px.
-     The stat cards need a side-by-side layout on mobile. */
   .pb-stat-stack {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -97,13 +81,10 @@
   }
 
   .pb-stat-art {
-    /* Pull it less far up so it doesn't escape the card on mobile */
     top: clamp(-90px, -12vw, -60px);
     width: 28%;
   }
 
-  /* ─ PATTERNS ─ */
-  /* even-child offset looks broken stacked — remove it */
   .pattern-item:nth-child(even) {
     transform: none;
   }
@@ -112,8 +93,6 @@
     min-height: auto;
   }
 
-  /* proof trail: base CSS rotates the SVG but the grid stays 5-col.
-     Override to a simple column. */
   .proof-trail {
     display: flex;
     flex-direction: column;
@@ -128,8 +107,6 @@
     padding-left: 24px;
   }
 
-  /* ─ FILE / BENTO ─ */
-  /* base sets bento to 1 col at 1100px — sidebar needs reorganising */
   .bento-sidebar {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -140,15 +117,12 @@
     grid-column: 1 / -1;
   }
 
-  /* fbrowser body already 1-col at 800px from base, but memo-col still
-     has a right border that looks orphaned */
   .memo-col {
     border-right: none;
     border-bottom: 1px solid var(--ink15);
     padding-bottom: 20px;
   }
 
-  /* ─ CASES ─ */
   .tab-row {
     width: 100%;
     display: grid;
@@ -160,20 +134,16 @@
     padding: 10px 12px;
   }
 
-  /* case-boxes: base CSS doesn't define mobile layout */
   .case-boxes {
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
 
-  /* ─ TESTIMONIALS ─ */
-  /* Plants overflow awkwardly on narrow screens */
   .test-plant {
     display: none;
   }
 
-  /* One card visible at a time — match viewport width */
   .tcard {
     width: calc(100vw - 2.5rem);
     min-width: 0;
@@ -187,13 +157,10 @@
     flex-shrink: 0;
   }
 
-  /* ─ PRICING ─ */
-  /* base sets price-grid to 1-col at 1100px — put "most popular" first */
   .price-card.featured {
     order: -1;
   }
 
-  /* scope ribbon stacks */
   .scope-ribbon {
     flex-direction: column;
     text-align: left;
@@ -205,24 +172,18 @@
     text-align: center;
   }
 
-  /* ─ TRUST ─ */
   .trust-plant {
-    display: none; /* decorative, not needed on small screens */
+    display: none;
   }
 
-  /* ─ INTAKE / FORM ─ */
-  /* illustration sits awkwardly in the 1-col mobile layout — hide it */
   .intake-illustration {
     display: none !important;
   }
 
-  /* field-row is defined as 1fr 1fr grid — collapse on mobile */
   .field-row {
     grid-template-columns: 1fr;
   }
 
-  /* ─ FOOTER CTA ─ */
-  /* base sets footer-cta-inner to 1-col at 800px */
   .footer-actions {
     flex-direction: column;
     width: 100%;
@@ -234,7 +195,6 @@
     width: 100%;
   }
 
-  /* Watermark can be enormous — keep it contained */
   .footer-watermark {
     font-size: clamp(4rem, 20vw, 8rem);
     bottom: -20px;
@@ -242,7 +202,6 @@
   }
 }
 
-/* ── Very small phones: 400px and below ── */
 @media (max-width: 400px) {
   .hero-h1 {
     font-size: clamp(1.75rem, 8.5vw, 2.5rem);
@@ -265,7 +224,7 @@
   }
 
   .tab-row {
-    grid-template-columns: 1fr 1fr; /* keep 2-col, labels are short */
+    grid-template-columns: 1fr 1fr;
   }
 
   .footer-grid {
@@ -273,6 +232,6 @@
   }
 
   .nav-cta {
-    display: none; /* too cramped — hamburger menu handles it */
+    display: none;
   }
 }

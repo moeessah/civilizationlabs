@@ -1,10 +1,7 @@
 (() => {
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
-
-  const on = (target, event, handler, options) => {
-    if (target) target.addEventListener(event, handler, options);
-  };
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+  const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
 
   function initNav() {
     const nav = $('#mainNav');
@@ -17,33 +14,28 @@
     const currentWrap = $('.nav-current');
     let activeLabel = currentLabel?.textContent || '';
 
-    const syncSolidNav = () => nav?.classList.toggle('solid', window.scrollY > 40);
+    const syncSolid = () => nav?.classList.toggle('solid', window.scrollY > 40);
 
     const closeMenu = () => {
       menu?.classList.remove('open');
       trigger?.setAttribute('aria-expanded', 'false');
     };
 
-    const updateActiveLink = () => {
+    const updateActive = () => {
       if (!sections.length) return;
-
       const marker = window.innerHeight * 0.34;
-      let bestSection = sections[0];
-      let bestDistance = Infinity;
+      let best = sections[0];
+      let bestDist = Infinity;
 
-      sections.forEach(section => {
-        const rect = section.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-
-        const distance = Math.abs(rect.top - marker);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          bestSection = section;
-        }
+      sections.forEach(s => {
+        const r = s.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight) return;
+        const d = Math.abs(r.top - marker);
+        if (d < bestDist) { bestDist = d; best = s; }
       });
 
-      const id = bestSection.id;
-      const label = bestSection.dataset.navLabel || '';
+      const id = best.id;
+      const label = best.dataset.navLabel || '';
 
       [...topLinks, ...menuLinks].forEach(link => {
         link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
@@ -58,41 +50,34 @@
       }
     };
 
-    on(window, 'scroll', syncSolidNav, { passive: true });
-    on(window, 'scroll', updateActiveLink, { passive: true });
-    on(window, 'resize', updateActiveLink);
+    on(window, 'scroll', syncSolid, { passive: true });
+    on(window, 'scroll', updateActive, { passive: true });
+    on(window, 'resize', updateActive);
 
     on(trigger, 'click', () => {
-      const isOpen = menu?.classList.toggle('open');
-      trigger.setAttribute('aria-expanded', String(isOpen));
+      const open = menu?.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', String(open));
     });
 
     menuLinks.forEach(link => on(link, 'click', closeMenu));
-    on(document, 'click', event => {
-      if (menu && !menu.contains(event.target)) closeMenu();
-    });
-    on(document, 'keydown', event => {
-      if (event.key === 'Escape') closeMenu();
-    });
+    on(document, 'click', e => { if (menu && !menu.contains(e.target)) closeMenu(); });
+    on(document, 'keydown', e => { if (e.key === 'Escape') closeMenu(); });
 
-    syncSolidNav();
-    updateActiveLink();
+    syncSolid();
+    updateActive();
   }
 
   function initTrustPlant() {
     const section = $('.trust');
     const plant = $('.trust-plant');
     const cells = $$('.trust-cell');
-
     if (!section || !plant) return;
 
-    const containsPoint = (rect, x, y) => (
-      x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
-    );
+    const hits = (rect, x, y) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 
-    on(window, 'mousemove', event => {
-      const overPlant = containsPoint(plant.getBoundingClientRect(), event.clientX, event.clientY);
-      const overCell = cells.some(cell => containsPoint(cell.getBoundingClientRect(), event.clientX, event.clientY));
+    on(window, 'mousemove', e => {
+      const overPlant = hits(plant.getBoundingClientRect(), e.clientX, e.clientY);
+      const overCell = cells.some(c => hits(c.getBoundingClientRect(), e.clientX, e.clientY));
       section.classList.toggle('plant-front', overPlant && !overCell);
     });
 
@@ -103,15 +88,15 @@
     const items = $$('.reveal,.reveal-l,.reveal-r');
     if (!items.length) return;
 
-    const observer = new IntersectionObserver(entries => {
+    const obs = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         entry.target.classList.add('in');
-        observer.unobserve(entry.target);
+        obs.unobserve(entry.target);
       });
     }, { threshold: 0.08 });
 
-    items.forEach(item => observer.observe(item));
+    items.forEach(item => obs.observe(item));
   }
 
   function initCarousel() {
@@ -122,49 +107,47 @@
     let current = Math.min(1, cards.length - 1);
     let autoTimer;
 
-    const circularOffset = (index, active, total) => {
-      let offset = index - active;
-      if (offset > total / 2) offset -= total;
-      if (offset < -total / 2) offset += total;
-      return offset;
+    const wrapOffset = (i, active, total) => {
+      let off = i - active;
+      if (off > total / 2) off -= total;
+      if (off < -total / 2) off += total;
+      return off;
     };
 
     const apply = () => {
       const total = cards.length;
+      cards.forEach((card, i) => {
+        const off = wrapOffset(i, current, total);
+        const dist = Math.abs(off);
 
-      cards.forEach((card, index) => {
-        const offset = circularOffset(index, current, total);
-        const distance = Math.abs(offset);
-        const visible = distance <= 2;
+        if (dist > 2) { card.style.display = 'none'; return; }
+        card.style.display = '';
 
-        card.style.display = visible ? '' : 'none';
-        if (!visible) return;
+        const scale = dist === 0 ? 1 : dist === 1 ? 0.78 : 0.62;
+        const tx = off * 360;
+        const tz = dist === 0 ? 0 : dist === 1 ? -120 : -220;
+        const ry = off * -10;
 
-        const scale = distance === 0 ? 1 : distance === 1 ? 0.78 : 0.62;
-        const translateX = offset * 360;
-        const translateZ = distance === 0 ? 0 : distance === 1 ? -120 : -220;
-        const rotateY = offset * -10;
-
-        card.style.transform = `translate(-50%,-50%) translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
-        card.style.opacity = distance === 0 ? '1' : distance === 1 ? '.56' : '.24';
-        card.style.zIndex = String(20 - distance);
-        card.style.filter = distance > 1 ? 'blur(1px)' : '';
-        card.style.pointerEvents = distance === 0 ? 'auto' : 'none';
-        card.style.boxShadow = distance === 0
+        card.style.transform = `translate(-50%,-50%) translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${scale})`;
+        card.style.opacity = dist === 0 ? '1' : dist === 1 ? '.56' : '.24';
+        card.style.zIndex = String(20 - dist);
+        card.style.filter = dist > 1 ? 'blur(1px)' : '';
+        card.style.pointerEvents = dist === 0 ? 'auto' : 'none';
+        card.style.boxShadow = dist === 0
           ? '0 34px 90px rgba(14,14,12,.18)'
           : '0 10px 28px rgba(14,14,12,.07)';
       });
     };
 
-    const advance = direction => {
-      current = (current + direction + cards.length) % cards.length;
+    const advance = dir => {
+      current = (current + dir + cards.length) % cards.length;
       apply();
     };
 
-    const stopAuto = () => window.clearInterval(autoTimer);
+    const stopAuto = () => clearInterval(autoTimer);
     const startAuto = () => {
       stopAuto();
-      autoTimer = window.setInterval(() => advance(1), 3600);
+      autoTimer = setInterval(() => advance(1), 2200);
     };
 
     on($('#nextBtn'), 'click', () => advance(1));
@@ -173,13 +156,10 @@
     on(track, 'mouseleave', startAuto);
 
     let touchStartX = 0;
-    on(track, 'touchstart', event => {
-      touchStartX = event.touches[0].clientX;
-    }, { passive: true });
-
-    on(track, 'touchend', event => {
-      const deltaX = event.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(deltaX) > 40) advance(deltaX < 0 ? 1 : -1);
+    on(track, 'touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    on(track, 'touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) advance(dx < 0 ? 1 : -1);
     }, { passive: true });
 
     apply();
@@ -187,7 +167,7 @@
   }
 
   function initCaseSwitcher() {
-    const data = {
+    const cases = {
       pricing: {
         type: 'Pricing change',
         title: 'Raise pricing by 18% next quarter.',
@@ -223,6 +203,8 @@
     };
 
     const panel = $('.case-panel');
+    if (!panel) return;
+
     const fields = {
       type: $('#caseType'),
       title: $('#caseTitle'),
@@ -232,27 +214,23 @@
       evidence: $('#caseEvidence')
     };
 
-    if (!panel) return;
+    $$('.ctab').forEach(btn => {
+      on(btn, 'click', () => {
+        const next = cases[btn.dataset.case];
+        if (!next) return;
 
-    $$('.ctab').forEach(button => {
-      on(button, 'click', () => {
-        const nextCase = data[button.dataset.case];
-        if (!nextCase) return;
-
-        $$('.ctab').forEach(tab => {
-          const isActive = tab === button;
-          tab.classList.toggle('active', isActive);
-          tab.setAttribute('aria-selected', String(isActive));
+        $$('.ctab').forEach(t => {
+          const active = t === btn;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
         });
 
         panel.style.transition = 'opacity .25s,transform .25s';
         panel.style.opacity = '0';
         panel.style.transform = 'translateY(10px)';
 
-        window.setTimeout(() => {
-          Object.entries(fields).forEach(([key, node]) => {
-            if (node) node.textContent = nextCase[key];
-          });
+        setTimeout(() => {
+          Object.entries(fields).forEach(([k, node]) => { if (node) node.textContent = next[k]; });
           panel.style.opacity = '1';
           panel.style.transform = '';
         }, 220);
@@ -267,41 +245,41 @@
     const warning = $('#scopeWarning');
     const success = $('#successState');
 
-    const restrictedTerms = [
-      'hire', 'fire', 'employee', 'salary', 'compensation', 'lawsuit', 'legal',
-      'attorney', 'tax', 'investment', 'securities', 'insurance', 'medical',
-      'diagnosis', 'visa', 'immigration'
+    const restricted = [
+      'hire','fire','employee','salary','compensation','lawsuit','legal',
+      'attorney','tax','investment','securities','insurance','medical',
+      'diagnosis','visa','immigration'
     ];
 
-    const getScopeText = () => ['decisionType', 'decisionText', 'stakesText', 'summaryText']
-      .map(id => $(`#${id}`)?.value || '')
-      .join(' ')
-      .toLowerCase();
+    const getScopeText = () =>
+      ['decisionType','decisionText','stakesText','summaryText']
+        .map(id => $(`#${id}`)?.value || '')
+        .join(' ')
+        .toLowerCase();
 
     const checkScope = () => {
       const type = $('#decisionType')?.value;
       const text = getScopeText();
-      const flagged = type === 'Other' || restrictedTerms.some(term => text.includes(term));
+      const flagged = type === 'Other' || restricted.some(t => text.includes(t));
       warning?.classList.toggle('show', flagged);
     };
 
-    ['decisionType', 'decisionText', 'stakesText', 'summaryText'].forEach(id => {
+    ['decisionType','decisionText','stakesText','summaryText'].forEach(id => {
       const field = $(`#${id}`);
       on(field, 'input', checkScope);
       on(field, 'change', checkScope);
     });
 
-    on(ndaSelect, 'change', event => {
+    on(ndaSelect, 'change', e => {
       if (!uploadHelp) return;
-      uploadHelp.textContent = event.target.value === 'Yes'
+      uploadHelp.textContent = e.target.value === 'Yes'
         ? 'Submit the summary now. We will send NDA details before asking for full materials.'
         : 'Decks, memos, spreadsheets, roadmap notes, customer research, campaign briefs.';
     });
 
-    on(form, 'submit', event => {
-      event.preventDefault();
+    on(form, 'submit', e => {
+      e.preventDefault();
       if (!form.reportValidity()) return;
-
       form.style.display = 'none';
       success?.classList.add('show');
       success?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -312,17 +290,12 @@
     const items = $$('.pattern-item');
     if (!items.length) return;
 
-    items.forEach(activeItem => {
-      on(activeItem, 'mouseenter', () => {
-        items.forEach(item => {
-          if (item !== activeItem) item.style.borderColor = 'transparent';
-        });
+    items.forEach(active => {
+      on(active, 'mouseenter', () => {
+        items.forEach(item => { if (item !== active) item.style.borderColor = 'transparent'; });
       });
-
-      on(activeItem, 'mouseleave', () => {
-        items.forEach(item => {
-          item.style.borderColor = '';
-        });
+      on(active, 'mouseleave', () => {
+        items.forEach(item => { item.style.borderColor = ''; });
       });
     });
   }

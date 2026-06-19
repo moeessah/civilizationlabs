@@ -58,8 +58,10 @@ button{background:none;border:none;font:inherit;cursor:pointer}
   width:20px;height:20px;border-radius:50%;
   background:conic-gradient(var(--lime) 180deg, var(--ink) 180deg);
   flex-shrink:0;
+  animation:orbLoad .9s cubic-bezier(.34,1.56,.64,1) forwards;
   transition:transform .6s var(--spring);
 }
+@keyframes orbLoad{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .brand:hover .brand-orb{transform:rotate(180deg)}
 .nav-links{display:flex;gap:0}
 .nav-links a{
@@ -273,7 +275,7 @@ button{background:none;border:none;font:inherit;cursor:pointer}
 .ticker-track:hover{animation-play-state:paused}
 .ticker-item{
   display:inline-flex;align-items:center;gap:18px;padding:0 32px;
-  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink15);
+  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888888;
 }
 .ticker-item strong{color:var(--ink);font-weight:700}
 .ticker-dot{
@@ -710,7 +712,7 @@ button{background:none;border:none;font:inherit;cursor:pointer}
   position:absolute;
   left:50%;
   top:50%;
-  transition:transform .4s var(--ease), opacity .4s var(--ease), box-shadow .4s var(--ease), filter .4s var(--ease);
+  transition:transform .32s var(--ease), opacity .32s var(--ease), box-shadow .32s var(--ease), filter .32s var(--ease);
 }
 .tcard::before{
   content:'Client note';
