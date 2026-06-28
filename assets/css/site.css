@@ -72,7 +72,7 @@ button{background:none;border:none;font:inherit;cursor:pointer}
   margin:-3px 0 0 -3px;
   border-radius:50%;
   background:var(--lime);
-  border:1px solid var(--ink);
+  border:1.5px solid var(--ink);
   transform:translate(6.7px,-6.7px);
   transform-origin:center;
   animation:orbDotBounce 1.08s cubic-bezier(.2,.86,.18,1) both;
